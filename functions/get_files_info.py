@@ -1,15 +1,25 @@
 import os
 
 def get_files_info(working_directory, directory="."):
+    """List information about files in a directory under a constrained working directory.
+
+    Args:
+        working_directory (str): Base directory that the agent is allowed to access.
+        directory (str, optional): Relative path from the working directory to inspect. Defaults to ".".
+
+    Returns:
+       str: A newline-separated description of each entry in the target directory, or an error message starting with "Error:" if the path is invalid or an exception occurs.
+    """
+
     working_dir_abs = os.path.abspath(working_directory)
     target_dir = os.path.normpath(os.path.join(working_dir_abs, directory))
 
     # Check directory is accessible
     valid_target_dir = os.path.commonpath([working_dir_abs, target_dir]) == working_dir_abs
-    if valid_target_dir == False:
+    if not valid_target_dir:
         return (f'Error: Cannot list "{directory}" as it is outside the permitted working directory')
     
-    if os.path.isdir(target_dir) == False:
+    if not os.path.isdir(target_dir):
         return (f'Error: "{directory}" is not a directory')
 
     try:
