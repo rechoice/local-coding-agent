@@ -1,4 +1,5 @@
 import os
+from google.genai import types
 
 def write_file(working_directory, file_path, content):
     
@@ -22,3 +23,24 @@ def write_file(working_directory, file_path, content):
     
     except Exception as e:
         return f'Error: {e}'
+    
+
+# schema
+schema_write_file = types.FunctionDeclaration(
+    name="write_file",
+    description="Creates or overwrites a file with the given content, automatically creating parent directories if needed",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="Path where file should be created, relative to working directory (e.g., 'output.txt', 'data/results.json')",
+            ),
+            "content": types.Schema(
+                type=types.Type.STRING,
+                description="Text content to write to the file",
+                ),
+        },
+        required=["file_path"]
+    ),
+)
