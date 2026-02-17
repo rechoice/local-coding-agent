@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from prompts import system_prompt
-from call_function import available_functions
+from call_function import available_functions, call_function
 
 
 def main():
@@ -40,26 +40,29 @@ def main():
         )
     )
 
-    if response.function_calls:
-        for function_call in response.function_calls:
-            print(f"Calling function: {function_call.name}({function_call.args})")
-    else:
-        print(response.text)
-
     # Ensure the response contains token usage metadata
     if not response.usage_metadata:
         raise RuntimeError("Gemini API response appears to be malformed")
-    
-    if args.verbose:
-        print("User prompt:", user_prompt)
-        print("Prompt tokens:", response.usage_metadata.prompt_token_count)
-        print("Response tokens:", response.usage_metadata.candidates_token_count)
-        
-        if response.function_calls:
-            for fc in response.function_calls:
-                print(f"Debug - Function: {fc.name} with {fc.args}")
-        else:
-            print(f"Debug - Text: {response.text}")
+
+
+    if response.function_calls:
+        function_results = []
+        for function in response.function_calls:
+            function_call_result = call_function(function, verbose=args.verbose)
+            
+            if not function_call_result.parts:
+                raise RuntimeError("No parts in response")
+            if function_call_result.parts[0].function_response is None:
+                raise RuntimeError("No function response")
+            if function_call_result.parts[0].function_response.response is None:
+                raise RuntimeError("No response data")
+            function_results.append(function_call_result.parts[0])
+
+            if args.verbose:
+                print(f"-> {function_call_result.parts[0].function_response.response}")
+    else:
+        print(response.text)
+
 
 if __name__ == "__main__":
     main()
